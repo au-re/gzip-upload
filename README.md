@@ -1,5 +1,5 @@
-[![exhibit banner](https://raw.githubusercontent.com/au-re/lib-template/master/static/assets/icon.png)](https://github.com/au-re/lib-template)
-[![License](https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat-square)](https://github.com/au-re/lib-template/blob/master/LICENSE)
+[![exhibit banner](https://raw.githubusercontent.com/au-re/gzip-upload/master/static/assets/icon.png)](https://github.com/au-re/gzip-upload)
+[![License](https://img.shields.io/packagist/l/doctrine/orm.svg?style=flat-square)](https://github.com/au-re/gzip-upload/blob/master/LICENSE)
 [![dependencies Status](https://david-dm.org/au-re/react-exhibit-template/status.svg?style=flat-square)](https://david-dm.org/au-re/react-exhibit-template)
 [![devDependencies Status](https://david-dm.org/au-re/react-exhibit-template/dev-status.svg?style=flat-square)](https://david-dm.org/au-re/react-exhibit-template?type=dev)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)

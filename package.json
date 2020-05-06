@@ -31,7 +31,7 @@
     "@storybook/react": "^5.3.18",
     "@testing-library/react": "^10.0.2",
     "@types/jest": "^25.2.1",
-    "@types/node": "^13.11.1",
+    "@types/node": "^13.13.4",
     "@types/react": "^16.9.34",
     "@types/react-dom": "^16.9.6",
     "@types/react-test-renderer": "^16.9.2",
@@ -43,7 +43,6 @@
     "cz-emoji": "^1.2.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.19.0",
@@ -90,5 +89,13 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "dependencies": {
+    "@types/minimist": "^1.2.0",
+    "@types/superagent": "^4.1.7",
+    "axios": "^0.19.2",
+    "form-data": "^3.0.0",
+    "minimist": "^1.2.5",
+    "superagent": "^5.2.2"
+  }
 }
