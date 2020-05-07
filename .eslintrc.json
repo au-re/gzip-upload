@@ -46,6 +46,9 @@
         "allowTemplateLiterals": true
       }
     ],
+    "no-await-in-loop": "off",
+    "no-plusplus": "off",
+    "no-console": "off",
     "no-shadow": "off",
     "padded-blocks": "off",
     "object-curly-newline": "off",

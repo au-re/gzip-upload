@@ -1,54 +1,124 @@
-import minimist from "minimist";
-import request from "superagent";
+#!/usr/bin/env node
 
+import chalk from "chalk";
+import figlet from "figlet";
+import fs from "fs";
 import path from "path";
-import fs, { ReadStream } from "fs";
+import program from "commander";
+import { Storage } from "@google-cloud/storage";
 
-// simple script that posts a folder to a server or cloud storage provider
-// gzip-upload --folder xxx --remote xxx
-// gzip-upload --folder yyy --serviceKey xxx
+import { version } from "../package.json";
 
-const argv = minimist(process.argv.slice(2));
+program
+  .version(version)
+  .description("A simple CLI to upload folders to Cloud Storage")
+  .option("-b, --bucketName", "Name of the bucket to upload to")
+  .option("-k, --keyFilename", "Path to the service key file")
+  .option("-s, --sourceFolder", "Folder to read from")
+  .option("-t, --targetFolder", "Target folder in the bucket")
+  .option("-C, --predefinedAcl", "Default Access Control Layer for all files uploaded")
+  .parse(process.argv);
 
-const { remote, folder } = argv;
-
-interface IFileContent {
-  name: string;
-  data: ReadStream;
+if (!process.argv.slice(2).length) {
+  console.clear();
+  console.log(chalk.blueBright(figlet.textSync("cloud-upload", { horizontalLayout: "fitted" })));
+  program.outputHelp();
+  process.exit();
 }
 
-function readFilesInFolder(folder: string): Promise<IFileContent[]> {
+const { bucketName, keyFilename, sourceFolder, targetFolder, predefinedAcl = "" } = program;
+
+const storage = new Storage({
+  keyFilename,
+});
+
+const bucket = storage.bucket(bucketName);
+const promises: any = [];
+let filesCounted = 0;
+let uploadedFiles = 0;
+
+async function asyncForEach(array: any, callback: any) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
+
+/**
+ * traverse a directory and call an action for each file
+ * @param sourceFolder
+ * @param callback
+ */
+async function walkDir(sourceFolder: string, callback: any) {
+  const files = fs.readdirSync(sourceFolder);
+
+  await asyncForEach(files, async (file: any) => {
+    const dirPath = path.join(sourceFolder, file);
+    const isDirectory = fs.statSync(dirPath).isDirectory();
+
+    // avoid overflowing memory for very large folders
+    if (promises.length > 180) {
+      await Promise.all(promises);
+      promises.length = 0;
+    }
+
+    if (isDirectory) {
+      await walkDir(dirPath, callback);
+    } else {
+      filesCounted += 1;
+      console.clear();
+      console.log(`${uploadedFiles}/${filesCounted}`);
+      promises.push(callback(path.join(sourceFolder, file)));
+    }
+  });
+}
+
+/**
+ * Create a read stream from a file and pipe its contents to a write stream to google cloud
+ * @param filePath
+ */
+function uploadFile(filePath: string) {
   return new Promise((resolve, reject) => {
-    fs.readdir(folder, (err, files) => {
-      if (err) reject(err);
+    const destinationPath = `${targetFolder}/${filePath.split("/").slice(1).join("/")}`;
+    const targetFile = bucket.file(destinationPath);
 
-      const fileContents: IFileContent[] = [];
+    const outStream = targetFile.createWriteStream({
+      predefinedAcl,
+      gzip: true,
+      contentType: "auto",
+    });
 
-      files.forEach((file) => {
-        fileContents.push({
-          name: file,
-          data: fs.createReadStream(path.join(folder, file)),
-        });
+    const readStream = fs.createReadStream(filePath);
+
+    readStream
+      .on("data", (chunk) => {
+        outStream.write(chunk);
+      })
+      .on("error", (error: Error) => {
+        reject(error);
+      })
+      .on("end", () => {
+        outStream.end();
       });
 
-      resolve(fileContents);
-    });
+    outStream
+      .on("error", (error: Error) => {
+        reject(error);
+      })
+      .on("finish", () => {
+        uploadedFiles += 1;
+        console.clear();
+        console.log(`${uploadedFiles}/${filesCounted}`, "file uploaded to", destinationPath);
+        resolve();
+      });
   });
-}
-
-function postFile(remote: string, files: IFileContent[]) {
-  const postRequest = request.post(remote);
-
-  files.forEach((file) => {
-    postRequest.attach(file.name, file.data);
-  });
-
-  return postRequest;
 }
 
 async function run() {
-  const files = await readFilesInFolder(folder);
-  await postFile(remote, files);
+  try {
+    await walkDir(sourceFolder, uploadFile);
+  } catch (error) {
+    console.log("error", error);
+  }
 }
 
 run();
