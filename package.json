@@ -3,7 +3,7 @@
   "main": "lib/index.js",
   "module": "lib/index.es.js",
   "types": "lib/index.d.ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "UNLICENSED",
   "description": "Upload a folder and all sub-folders to cloud storage",
   "scripts": {
