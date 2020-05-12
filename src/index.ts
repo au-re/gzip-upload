@@ -12,11 +12,11 @@ import { version } from "../package.json";
 program
   .version(version)
   .description("A simple CLI to upload folders to Cloud Storage")
-  .option("-b, --bucketName", "Name of the bucket to upload to")
-  .option("-k, --keyFilename", "Path to the service key file")
-  .option("-s, --sourceFolder", "Folder to read from")
-  .option("-t, --targetFolder", "Target folder in the bucket")
-  .option("-C, --predefinedAcl", "Default Access Control Layer for all files uploaded")
+  .option("-b, --bucketName <value>", "Name of the bucket to upload to")
+  .option("-k, --keyFilename <value>", "Path to the service key file")
+  .option("-s, --sourceFolder <value>", "Folder to read from")
+  .option("-t, --targetFolder <value>", "Target folder in the bucket")
+  .option("-C, --predefinedAcl <value>", "Default Access Control Layer for all files uploaded")
   .parse(process.argv);
 
 if (!process.argv.slice(2).length) {
@@ -26,7 +26,7 @@ if (!process.argv.slice(2).length) {
   process.exit();
 }
 
-const { bucketName, keyFilename, sourceFolder, targetFolder, predefinedAcl = "" } = program;
+const { bucketName, keyFilename, sourceFolder, targetFolder, predefinedAcl } = program;
 
 const storage = new Storage({
   keyFilename,
@@ -81,11 +81,14 @@ function uploadFile(filePath: string) {
     const destinationPath = `${targetFolder}/${filePath.split("/").slice(1).join("/")}`;
     const targetFile = bucket.file(destinationPath);
 
-    const outStream = targetFile.createWriteStream({
-      predefinedAcl,
+    const options: any = {
       gzip: true,
       contentType: "auto",
-    });
+    };
+
+    if (predefinedAcl) options.predefinedAcl = predefinedAcl;
+
+    const outStream = targetFile.createWriteStream(options);
 
     const readStream = fs.createReadStream(filePath);
 
